@@ -1,0 +1,43 @@
+name: Build freetype DLL
+
+on: [push]
+
+jobs:
+  build:
+    runs-on: windows-latest
+    
+    strategy:
+      matrix:
+        arch:
+          - bits: 64
+            mingw: x86_64
+          - bits: 32
+            mingw: i686
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - uses: numworks/setup-msys2@v1
+      with:
+        msystem: MINGW${{ matrix.arch.bits }}
+
+    - name: Update msys2
+      run: msys2do pacman -Syu --noconfirm
+    - name: Install msys2 packages
+      run: msys2do pacman -S --needed --noconfirm mingw-w64-${{ matrix.arch.mingw }}-cmake mingw-w64-${{ matrix.arch.mingw }}-gcc mingw-w64-${{ matrix.arch.mingw }}-make
+
+    - name: CMake
+      run: msys2do ./.github/workflows/cmake.sh ${{ matrix.arch.bits }}
+    - name: Build
+      run: msys2do cmake --build build -j 2
+
+    - name: Collect Artifacts
+      run: |
+        mkdir -p lib
+        mv build/freetype.dll lib/freetype.dll
+        mv build/freetype.lib lib/freetype.lib
+    - name: Upload Artifacts
+      uses: actions/upload-artifact@v1
+      with:
+        name: freetype-lib${{ matrix.arch.bits }}
+        path: lib

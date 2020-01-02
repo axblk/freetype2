@@ -133,6 +133,11 @@ endif ()
 
 project(freetype C)
 
+if (WIN32)
+  set(CMAKE_IMPORT_LIBRARY_PREFIX "")
+  set(CMAKE_SHARED_LIBRARY_PREFIX "")
+endif ()
+
 set(VERSION_MAJOR "2")
 set(VERSION_MINOR "10")
 set(VERSION_PATCH "1")
